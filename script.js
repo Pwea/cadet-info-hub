@@ -37,7 +37,14 @@ const projects = [
         title: "Adding Resources",
         description: "We are working to expand the resources available in the Resources section.",
         status: "in-progress",
-        progress: 10,
+        progress: 15,
+        due: "2025-11-12"
+    },
+	{
+        title: "Creating NGSP Study Game",
+        description: "FSgt Meilleur is working hard with the help of other seniors to create a study quiz for the NGSP.",
+        status: "in-progress",
+        progress: 30,
         due: "2025-11-12"
     }
 ];
@@ -282,3 +289,4 @@ document.body.addEventListener('keyup', (e) => {
     if (e.key === 'Tab') document.body.classList.add('show-focus');
 
 });
+
