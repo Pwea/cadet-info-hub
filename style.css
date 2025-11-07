@@ -53,20 +53,6 @@ button {
     --shadow-2: 0 16px 48px rgba(2, 9, 27, .45);
 }
 
-@media (prefers-color-scheme: light) {
-    :root {
-        --bg: #f7faff;
-        --bg-2: #eaf1ff;
-        --surface: #ffffff;
-        --card: #ffffff;
-        --card-2: #ffffff;
-        --text: #0b1f45;
-        --muted: #3c4a66;
-        --shadow-1: 0 8px 24px rgba(9, 20, 40, .12);
-        --shadow-2: 0 16px 48px rgba(9, 20, 40, .18);
-    }
-}
-
 body {
     font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, "Helvetica Neue", Arial, "Noto Sans", "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji", sans-serif;
     color: var(--text);
@@ -714,3 +700,4 @@ footer {
     transform: translateY(0);
     pointer-events: auto;
 }
+
