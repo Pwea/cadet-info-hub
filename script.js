@@ -6,7 +6,7 @@ const resources = [
         title: "NGSP Cadet File Review",
         url: "https://www.canada.ca/en/department-national-defence/services/cadets-junior-canadian-rangers/cjcr-policy/cjcrgporders/8000/8060-7/8060-7e.html",
         desc: "Official guidelines for how officers will review a cadet's file for NGSP eligibility scoring.",
-        tags: ["Official"],
+        tags: ["Official", "Flight"],
         ext: true
     },
     {
@@ -21,6 +21,13 @@ const resources = [
         url: "https://cadetuniforms.netlify.app/",
         desc: "Detailed list of proper wear for each uniform/dress.",
         tags: ["Official", "Drill"],
+        ext: true
+    },
+	{
+        title: "VFR Radio Communication Handbook",
+        url: "https://www.navcanada.ca/en/vfr-phraseology.pdf",
+        desc: "Detailed handbook on how to interact with the radio on board of an aircraft.",
+        tags: ["Official", "Flight"],
         ext: true
     },
 ];
@@ -273,4 +280,5 @@ toTop.addEventListener('click', () => window.scrollTo({ top: 0, behavior: 'smoot
 // -------------------------
 document.body.addEventListener('keyup', (e) => {
     if (e.key === 'Tab') document.body.classList.add('show-focus');
+
 });
