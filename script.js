@@ -44,8 +44,8 @@ const projects = [
         title: "Creating NGSP Study Game",
         description: "FSgt Meilleur is working hard with the help of other seniors to create a study quiz for the NGSP.",
         status: "in-progress",
-        progress: 30,
-        due: "2025-11-12"
+        progress: 90,
+        due: "2025-11-08"
     }
 ];
 
@@ -289,4 +289,5 @@ document.body.addEventListener('keyup', (e) => {
     if (e.key === 'Tab') document.body.classList.add('show-focus');
 
 });
+
 
