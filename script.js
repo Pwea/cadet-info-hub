@@ -9,6 +9,20 @@ const resources = [
         tags: ["Official", "Flight"],
         ext: true
     },
+	{
+        title: "NGSP Cloud Formation Game",
+        url: "cloud.html",
+        desc: "A fun matching game to practice your cloud formations knowledge!",
+        tags: ["Official", "Flight"],
+        ext: true
+    },
+	{
+        title: "NGSP METAR reading Game",
+        url: "metar.html",
+        desc: "A fun quiz game to practice your METAR knowledge!",
+        tags: ["Official", "Flight"],
+        ext: true
+    },
     {
         title: "Instructional Guides Finder",
         url: "https://cadetlessons.netlify.app/",
@@ -37,7 +51,7 @@ const projects = [
         title: "Adding Resources",
         description: "We are working to expand the resources available in the Resources section.",
         status: "in-progress",
-        progress: 15,
+        progress: 25,
         due: "2025-11-12"
     },
 	{
@@ -289,5 +303,6 @@ document.body.addEventListener('keyup', (e) => {
     if (e.key === 'Tab') document.body.classList.add('show-focus');
 
 });
+
 
 
