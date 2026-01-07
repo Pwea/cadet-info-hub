@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flight Deck: METAR Decoder Challenge</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .option-card:hover { border-color: #3b82f6; background-color: #f8fafc; }
+        .selected { border-color: #2563eb !important; background-color: #eff6ff !important; ring: 2px solid #2563eb; }
+    </style>
+</head>
+<body class="bg-slate-100 p-4 font-sans">
+
+    <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-2xl overflow-hidden border border-slate-200">
+        <div class="bg-slate-900 p-6 text-white border-b-4 border-blue-600">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-2xl font-black tracking-tighter uppercase italic text-blue-400">METAR Decoder: Quick Check</h1>
+                    <p class="text-slate-400 text-xs mt-1 font-mono">TASK: DECODE 5 OPERATIONAL REPORTS</p>
+                </div>
+                <div class="text-right">
+                    <span id="score-pill" class="text-[10px] font-mono border border-slate-700 px-2 py-1 rounded bg-slate-800 text-slate-300 uppercase tracking-widest">Pre-flight Mode</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-6">
+            <div id="quiz-container" class="space-y-8">
+                </div>
+
+            <div class="mt-10 pt-6 border-t border-slate-200">
+                <div id="feedback-panel" class="hidden mb-6 p-4 rounded-lg border text-sm"></div>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <button id="submit-btn" onclick="checkAnswers()" class="bg-blue-600 hover:bg-blue-700 text-white px-12 py-4 rounded font-black uppercase tracking-widest transition shadow-lg active:scale-95">Validate Logbook</button>
+                    <button onclick="window.location.reload()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-8 py-4 rounded font-bold uppercase tracking-widest transition">New Weather Set</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const metarDatabase = [
+            {
+                metar: "KJFK 062151Z 32008KT 10SM CLR 10/M02 A3002",
+                question: "What is the dew point at JFK?",
+                options: ["10°C", "-2°C", "30.02°C", "8°C"],
+                correct: 1,
+                tip: "The temperature/dewpoint field is '10/M02'. 'M' stands for Minus."
+            },
+            {
+                metar: "EGLL 062150Z AUTO 24015G25KT 5000 -RA FEW010 BKN025 08/06 Q1013",
+                question: "What is the primary ceiling for this approach?",
+                options: ["1,000 ft", "2,500 ft", "5,000 ft", "800 ft"],
+                correct: 1,
+                tip: "A ceiling is the lowest layer of BKN (Broken) or OVC (Overcast). FEW is not a ceiling."
+            },
+            {
+                metar: "KDEN 062153Z 00000KT 1/4SM R35L/2400FT FG VV001 02/02 A2992",
+                question: "The sky is obscured. What is the vertical visibility (ceiling)?",
+                options: ["Surface", "1,000 ft", "100 ft", "2,400 ft"],
+                correct: 2,
+                tip: "VV001 indicates 'Vertical Visibility' of 100 feet. This is used when the sky is obscured by fog (FG)."
+            },
+            {
+                metar: "PHNL 062153Z 08012KT 10SM FEW030 28/21 A2998 NOSIG",
+                question: "What does the 'NOSIG' suffix indicate?",
+                options: ["No Signal from station", "No Significant Change expected", "North Sighted", "Notice of Icing"],
+                correct: 1,
+                tip: "NOSIG is a trend forecast meaning 'No Significant Change' is expected for the next 2 hours."
+            },
+            {
+                metar: "CYUL 062100Z 18010KT 1 1/2SM -SN VV008 M05/M08 A2970 RMK SLP056",
+                question: "Decode the Sea Level Pressure (SLP) in the remarks.",
+                options: ["1056.0 hPa", "956.0 hPa", "1005.6 hPa", "29.70 hPa"],
+                correct: 2,
+                tip: "SLP056 is decoded by adding a 10 or 9 (whichever is closer to 1000) and a decimal: 1005.6 hPa."
+            },
+            {
+                metar: "KATL 062152Z 09004KT 1/2SM FG OVC002 12/12 A3001",
+                question: "Based on this METAR, what are the flight categories?",
+                options: ["VFR", "MVFR", "IFR", "LIFR"],
+                correct: 3,
+                tip: "LIFR (Low IFR) is visibility < 1 mile and/or ceiling < 500 feet."
+            },
+            {
+                metar: "KORD 062155Z 21014G22KT 10SM SCT040 SCT250 15/05 A2992",
+                question: "What is the peak wind gust reported?",
+                options: ["14 knots", "22 knots", "10 knots", "21 knots"],
+                correct: 1,
+                tip: "Wind is 210° at 14 knots, Gusting (G) to 22 knots."
+            }
+        ];
+
+        let activeSet = [];
+
+        function init() {
+            activeSet = [...metarDatabase].sort(() => Math.random() - 0.5).slice(0, 5);
+            const container = document.getElementById('quiz-container');
+
+            activeSet.forEach((item, index) => {
+                const qDiv = document.createElement('div');
+                qDiv.className = "bg-slate-50 border border-slate-200 rounded-lg p-5 transition-all";
+                qDiv.innerHTML = `
+                    <div class="flex items-center gap-2 mb-3">
+                        <span class="bg-slate-800 text-white text-[10px] px-2 py-0.5 rounded font-mono">STATION REPORT #${index + 1}</span>
+                    </div>
+                    <div class="bg-black p-4 rounded mb-4 shadow-inner">
+                        <code class="text-green-400 font-mono text-sm md:text-base tracking-wider">${item.metar}</code>
+                    </div>
+                    <p class="text-slate-800 font-bold mb-4">${item.question}</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3" id="q-${index}-options">
+                        ${item.options.map((opt, i) => `
+                            <button onclick="selectOption(${index}, ${i})" 
+                                    class="option-card text-left p-3 border rounded-md text-sm transition-all bg-white border-slate-200"
+                                    data-q="${index}" data-idx="${i}">
+                                ${opt}
+                            </button>
+                        `).join('')}
+                    </div>
+                `;
+                container.appendChild(qDiv);
+            });
+        }
+
+        let answers = {};
+
+        function selectOption(qIdx, optIdx) {
+            answers[qIdx] = optIdx;
+            const buttons = document.querySelectorAll(`[data-q="${qIdx}"]`);
+            buttons.forEach(btn => btn.classList.remove('selected'));
+            document.querySelector(`[data-q="${qIdx}"][data-idx="${optIdx}"]`).classList.add('selected');
+        }
+
+        function checkAnswers() {
+            let correctCount = 0;
+            let issues = [];
+            const container = document.getElementById('quiz-container');
+
+            activeSet.forEach((item, index) => {
+                const userChoice = answers[index];
+                const qBlock = container.children[index];
+                
+                if (userChoice === item.correct) {
+                    qBlock.className = "bg-green-50 border border-green-500 rounded-lg p-5 transition-all";
+                    correctCount++;
+                } else {
+                    qBlock.className = "bg-red-50 border border-red-500 rounded-lg p-5 transition-all";
+                    issues.push(`<strong>Question ${index+1}:</strong> ${item.tip}`);
+                }
+            });
+
+            const panel = document.getElementById('feedback-panel');
+            const scorePill = document.getElementById('score-pill');
+            panel.classList.remove('hidden');
+            scorePill.innerText = `Score: ${correctCount} / 5`;
+
+            if (correctCount === 5) {
+                panel.className = "mb-6 p-4 rounded-lg bg-green-100 border border-green-300 text-green-800 font-bold text-center";
+                panel.innerHTML = "Clear for Takeoff! You decoded all METARs perfectly.";
+            } else {
+                panel.className = "mb-6 p-4 rounded-lg bg-amber-50 border border-amber-200 text-amber-900";
+                panel.innerHTML = `<p class="font-bold mb-2 underline text-red-700">Flight Debrief:</p><ul class="list-disc ml-5 space-y-2">${issues.map(i => `<li>${i}</li>`).join('')}</ul>`;
+            }
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        }
+
+        init();
+    </script>
+</body>
+</html>
