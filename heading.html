@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flight Deck: Heading Correction Challenge</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .input-focus:focus { outline: none; border-color: #3b82f6; ring: 2px solid #bfdbfe; }
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    </style>
+</head>
+<body class="bg-slate-100 p-4 font-sans">
+
+    <div class="max-w-4xl mx-auto bg-white rounded-xl shadow-2xl overflow-hidden border border-slate-200">
+        <div class="bg-slate-900 p-6 text-white border-b-4 border-blue-600">
+            <div class="flex justify-between items-center">
+                <div>
+                    <h1 class="text-2xl font-black tracking-tighter uppercase italic text-blue-400">Navigation: Heading Correction</h1>
+                    <p class="text-slate-400 text-xs mt-1 font-mono">TASK: CALCULATE MAGNETIC & COMPASS HEADINGS</p>
+                </div>
+                <div class="text-right">
+                    <span id="score-pill" class="text-[10px] font-mono border border-slate-700 px-2 py-1 rounded bg-slate-800 text-slate-300 uppercase tracking-widest">Navigation Mode</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="bg-blue-50 border-b border-blue-100 p-4">
+            <div class="flex items-start gap-4">
+                <div class="bg-blue-600 text-white p-2 rounded-lg font-black text-xs">PILOT MATH</div>
+                <div class="text-sm text-blue-900">
+                    <p class="font-bold mb-1">Standard Conversion: <span class="font-mono bg-blue-100 px-1">TVMDC</span></p>
+                    <p class="italic text-xs mb-2">"True Virgins Make Dull Companions"</p>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-[11px] font-semibold uppercase tracking-wide">
+                        <div class="flex items-center gap-2">
+                            <span class="text-red-600">West is Best (+)</span>
+                            <span class="text-slate-400">Add Western Variation/Dev</span>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="text-green-700">East is Least (-)</span>
+                            <span class="text-slate-400">Subtract Eastern Variation/Dev</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="p-6">
+            <div class="hidden md:grid grid-cols-5 gap-4 mb-2 px-4 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                <div>True Heading</div>
+                <div>Variation</div>
+                <div class="text-blue-600">Magnetic (MH)</div>
+                <div>Deviation</div>
+                <div class="text-blue-600">Compass (CH)</div>
+            </div>
+
+            <div id="quiz-rows" class="space-y-3">
+                </div>
+
+            <div class="mt-10 pt-6 border-t border-slate-200">
+                <div id="feedback-panel" class="hidden mb-6 p-4 rounded-lg border text-sm"></div>
+                <div class="flex flex-col sm:flex-row gap-4 justify-center">
+                    <button id="submit-btn" onclick="checkAnswers()" class="bg-blue-600 hover:bg-blue-700 text-white px-12 py-4 rounded font-black uppercase tracking-widest transition shadow-lg active:scale-95">Verify Calculations</button>
+                    <button onclick="window.location.reload()" class="bg-slate-200 hover:bg-slate-300 text-slate-700 px-8 py-4 rounded font-bold uppercase tracking-widest transition">New Route</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let problems = [];
+
+        function generateProblems() {
+            const container = document.getElementById('quiz-rows');
+            for (let i = 0; i < 5; i++) {
+                const th = Math.floor(Math.random() * 360);
+                const varVal = (Math.floor(Math.random() * 15) + 1);
+                const varDir = Math.random() > 0.5 ? 'E' : 'W';
+                const devVal = (Math.floor(Math.random() * 5) + 1);
+                const devDir = Math.random() > 0.5 ? 'E' : 'W';
+
+                // Correct Math
+                let mh = varDir === 'E' ? th - varVal : th + varVal;
+                mh = (mh + 360) % 360;
+
+                let ch = devDir === 'E' ? mh - devVal : mh + devVal;
+                ch = (ch + 360) % 360;
+
+                problems.push({ th, varVal, varDir, devVal, devDir, mh, ch });
+
+                const row = document.createElement('div');
+                row.className = "grid grid-cols-1 md:grid-cols-5 gap-4 bg-slate-50 p-4 rounded-lg border border-slate-200 items-center";
+                row.innerHTML = `
+                    <div class="flex items-center gap-2">
+                        <span class="md:hidden text-[9px] font-bold text-slate-400">TH:</span>
+                        <span class="font-mono font-bold text-lg">${th.toString().padStart(3, '0')}°</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="md:hidden text-[9px] font-bold text-slate-400">VAR:</span>
+                        <span class="font-mono text-slate-600">${varVal}°${varDir}</span>
+                    </div>
+                    <div class="relative">
+                        <span class="md:hidden text-[9px] font-bold text-blue-600">MH:</span>
+                        <input type="number" id="mh-${i}" placeholder="---" class="w-full bg-white border border-slate-300 rounded px-3 py-2 font-mono text-sm input-focus" min="0" max="359">
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="md:hidden text-[9px] font-bold text-slate-400">DEV:</span>
+                        <span class="font-mono text-slate-600">${devVal}°${devDir}</span>
+                    </div>
+                    <div class="relative">
+                        <span class="md:hidden text-[9px] font-bold text-blue-600">CH:</span>
+                        <input type="number" id="ch-${i}" placeholder="---" class="w-full bg-white border border-slate-300 rounded px-3 py-2 font-mono text-sm input-focus" min="0" max="359">
+                    </div>
+                `;
+                container.appendChild(row);
+            }
+        }
+
+        function checkAnswers() {
+            let correctCount = 0;
+            let issues = [];
+            const rows = document.getElementById('quiz-rows').children;
+
+            problems.forEach((p, i) => {
+                const userMH = parseInt(document.getElementById(`mh-${i}`).value);
+                const userCH = parseInt(document.getElementById(`ch-${i}`).value);
+                const row = rows[i];
+
+                const mhCorrect = userMH === p.mh;
+                const chCorrect = userCH === p.ch;
+
+                if (mhCorrect && chCorrect) {
+                    row.className = "grid grid-cols-1 md:grid-cols-5 gap-4 bg-green-50 p-4 rounded-lg border border-green-500 items-center";
+                    correctCount++;
+                } else {
+                    row.className = "grid grid-cols-1 md:grid-cols-5 gap-4 bg-red-50 p-4 rounded-lg border border-red-500 items-center";
+                    issues.push(`Line ${i+1}: $${p.th}°$ TH with $${p.varVal}°${p.varDir}$ Variation = $${p.mh}°$ MH. With $${p.devVal}°${p.devDir}$ Dev = $${p.ch}°$ CH.`);
+                }
+            });
+
+            const panel = document.getElementById('feedback-panel');
+            const scorePill = document.getElementById('score-pill');
+            panel.classList.remove('hidden');
+            scorePill.innerText = `Score: ${correctCount} / 5`;
+
+            if (correctCount === 5) {
+                panel.className = "mb-6 p-4 rounded-lg bg-green-100 border border-green-300 text-green-800 font-bold text-center";
+                panel.innerHTML = "Navigation Log Validated! Your headings are spot on.";
+            } else {
+                panel.className = "mb-6 p-4 rounded-lg bg-amber-50 border border-amber-200 text-amber-900";
+                panel.innerHTML = `<p class="font-bold mb-2 underline text-red-700">Instructor Notes:</p><ul class="list-disc ml-5 space-y-1 text-xs font-mono">${issues.map(item => `<li>${item}</li>`).join('')}</ul>`;
+            }
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+        }
+
+        generateProblems();
+    </script>
+</body>
+</html>
